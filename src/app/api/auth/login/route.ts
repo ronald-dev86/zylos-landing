@@ -63,7 +63,12 @@ export async function POST(request: NextRequest) {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select(`
-        *,
+        id,
+        email,
+        tenant_id,
+        role,
+        created_at,
+        updated_at,
         tenants:tenant_id (
           id,
           name,
@@ -71,12 +76,20 @@ export async function POST(request: NextRequest) {
         )
       `)
       .eq('id', data.user?.id)
-      .single();
+      .maybeSingle();
 
-    if (userError || !userData) {
+    if (userError) {
+      console.error('User query error:', userError);
       return NextResponse.json(
         { success: false, error: 'Error al obtener información del usuario' },
         { status: 500 }
+      );
+    }
+
+    if (!userData) {
+      return NextResponse.json(
+        { success: false, error: 'Usuario no encontrado' },
+        { status: 404 }
       );
     }
 

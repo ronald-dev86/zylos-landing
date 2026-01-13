@@ -22,7 +22,12 @@ export class AuthService {
       const { data: userData, error: userError } = await this.supabase
         .from('users')
         .select(`
-          *,
+          id,
+          email,
+          tenant_id,
+          role,
+          created_at,
+          updated_at,
           tenants:tenant_id (
             id,
             name,
@@ -30,14 +35,22 @@ export class AuthService {
           )
         `)
         .eq('id', data.user?.id)
-        .single();
+        .maybeSingle();
 
-      if (userError || !userData) {
-        return {
-          success: false,
-          error: 'Error al obtener información del usuario',
-        };
-      }
+    if (userError) {
+      console.error('User query error:', userError);
+      return {
+        success: false,
+        error: 'Error al obtener información del usuario',
+      };
+    }
+
+    if (!userData) {
+      return {
+        success: false,
+        error: 'Usuario no encontrado',
+      };
+    }
 
       const user: User = {
         id: userData.id,
@@ -108,7 +121,12 @@ export class AuthService {
       const { data: userData, error } = await this.supabase
         .from('users')
         .select(`
-          *,
+          id,
+          email,
+          tenant_id,
+          role,
+          created_at,
+          updated_at,
           tenants:tenant_id (
             id,
             name,
@@ -116,7 +134,7 @@ export class AuthService {
           )
         `)
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error || !userData) {
         return null;
