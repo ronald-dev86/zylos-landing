@@ -26,14 +26,13 @@ export default function Login() {
     setError("");
 
     try {
-      const success = await login(email, password);
+      const result = await login(email, password);
       
-      if (success) {
-        // Extract subdomain from email or use default
-        const subdomain = email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'dashboard';
-        router.push(`/${subdomain}/dashboard`);
+      if (result.success) {
+        // Redirect will be handled by the AuthContext
+        // based on the tenant's subdomain
       } else {
-        setError("Credenciales incorrectas. Por favor intente nuevamente.");
+        setError(result.error || "Credenciales incorrectas. Por favor intente nuevamente.");
       }
     } catch (err) {
       setError("Error al iniciar sesión. Por favor intente nuevamente.");

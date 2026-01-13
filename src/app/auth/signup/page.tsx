@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/shared/components/Button";
 import { Card } from "@/shared/components/Card";
 import { Input } from "@/shared/components/Input";
 import Link from "next/link";
+import { useAuth } from "@/shared/contexts/AuthContext";
 
 export default function Signup() {
+  const { login } = useAuth();
   const [storeData, setStoreData] = useState({
     storeName: "",
     subdomain: "",
@@ -18,7 +21,6 @@ export default function Signup() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
 
   // Debug log for state changes
   useEffect(() => {
@@ -93,16 +95,11 @@ export default function Signup() {
         return;
       }
 
-      // Store auth token and user data in localStorage
-      if (data.data.auth) {
-        localStorage.setItem('auth_token', data.data.auth.token);
-        localStorage.setItem('user_data', JSON.stringify(data.data.user));
-        localStorage.setItem('tenant_data', JSON.stringify(data.data.tenant));
+      // Auto-login after successful signup
+      const loginResult = await login(storeData.email, storeData.password);
+      if (!loginResult.success) {
+        setError("Cuenta creada pero error al iniciar sesión. Por favor intenta manualmente.");
       }
-
-      // Redirect to dashboard with tenant subdomain
-      const tenantUrl = `/${storeData.subdomain}/dashboard`;
-      router.push(tenantUrl);
 
     } catch (err) {
       setError("Error al crear la tienda. Por favor intente nuevamente.");

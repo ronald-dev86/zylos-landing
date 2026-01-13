@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/infrastructure/supabase-client/client';
 import { z } from 'zod';
+import { Database, AuthResponse } from '@zylos/shared-types';
 
 const SignupSchema = z.object({
   storeName: z.string().min(2, 'El nombre de la tienda debe tener al menos 2 caracteres'),
