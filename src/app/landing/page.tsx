@@ -1,8 +1,60 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/shared/components/Button";
 import { Card } from "@/shared/components/Card";
 import Link from "next/link";
 
 export default function Landing() {
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+
+  const plans = [
+    {
+      name: 'Básico',
+      description: 'Perfecto para pequeñas tiendas',
+      monthlyPrice: 0,
+      annualPrice: 0,
+      features: [
+        'Hasta 3 usuarios',
+        '100 productos',
+        'Ventas POS básicas',
+        'Reportes básicos',
+        'Soporte por email'
+      ]
+    },
+    {
+      name: 'Negocios',
+      description: 'Ideal para empresas en crecimiento',
+      monthlyPrice: 29,
+      annualPrice: 24,
+      popular: true,
+      features: [
+        'Hasta 15 usuarios',
+        'Productos ilimitados',
+        'Ventas POS avanzadas',
+        'Gestión de proveedores',
+        'Control financiero completo',
+        'Reportes avanzados',
+        'Soporte prioritario'
+      ]
+    },
+    {
+      name: 'Premium',
+      description: 'Para grandes empresas',
+      monthlyPrice: 99,
+      annualPrice: 79,
+      features: [
+        'Usuarios ilimitados',
+        'Todo lo de Negocios',
+        'Múltiples sucursales',
+        'Integraciones API',
+        'Analytics avanzado',
+        'Backup diario',
+        'Soporte 24/7',
+        'Manager dedicado'
+      ]
+    }
+  ];
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
@@ -14,8 +66,8 @@ export default function Landing() {
               <span className="text-xl font-bold text-slate-900 dark:text-white">Zylos</span>
             </div>
             <nav className="hidden md:flex items-center space-x-6">
-              <a href="#features" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Características</a>
               <a href="#pricing" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Precios</a>
+              <a href="#features" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Características</a>
               <Link href="/auth/login">
                 <Button variant="ghost">Iniciar Sesión</Button>
               </Link>
@@ -54,7 +106,7 @@ export default function Landing() {
                 </Button>
               </Link>
             </div>
-          </div>
+            </div>
         </section>
 
         {/* Features Section */}
@@ -141,6 +193,114 @@ export default function Landing() {
                   Multi-región, auto-scaling y respaldos automáticos
                 </p>
               </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                Planes para cada necesidad
+              </h2>
+              <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                Elige el plan perfecto para tu negocio y escala cuando lo necesites
+              </p>
+            </div>
+
+            {/* Billing Toggle */}
+            <div className="flex justify-center mb-12">
+              <div className="bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                    billingCycle === 'monthly'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  Mensual
+                </button>
+                <button
+                  onClick={() => setBillingCycle('annual')}
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-colors relative ${
+                    billingCycle === 'annual'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  Anual
+                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                    Ahorra 20%
+                  </span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              {plans.map((plan) => (
+                <Card key={plan.name} className={`p-8 relative ${plan.popular ? 'border-2 border-blue-500 shadow-xl' : ''}`}>
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                        Más Popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="text-center mb-8">
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{plan.name}</h3>
+                    <p className="text-slate-600 dark:text-slate-400 mb-4">{plan.description}</p>
+                    <div className="mb-6">
+                      <span className="text-4xl font-bold text-slate-900 dark:text-white">
+                        ${billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice}
+                      </span>
+                      <span className="text-slate-600 dark:text-slate-400">/mes</span>
+                      {billingCycle === 'annual' && plan.monthlyPrice > 0 && (
+                        <div className="text-sm text-green-600 dark:text-green-400 mt-1">
+                          Ahorrando ${(plan.monthlyPrice - plan.annualPrice) * 12}/año
+                        </div>
+                      )}
+                    </div>
+                    <Button 
+                      className="w-full"
+                      variant={plan.monthlyPrice === 0 ? "outline" : plan.popular ? "primary" : "outline"}
+                    >
+                      {plan.monthlyPrice === 0 ? 'Comenzar Gratis' : `Elegir ${plan.name}`}
+                    </Button>
+                  </div>
+                  
+                  <ul className="space-y-4 mb-8">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-center">
+                        <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-slate-700 dark:text-slate-300">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-slate-600 dark:text-slate-400 mb-4">
+                Todos los planes incluyen subdominio personalizado y SSL
+              </p>
+              <div className="flex justify-center space-x-8 text-sm text-slate-500 dark:text-slate-400">
+                <span>✅ Cancela cuando quieras</span>
+                <span>✅ Actualiza o degrada tu plan</span>
+                <span>✅ 14 días de prueba gratuita</span>
+              </div>
+              {billingCycle === 'annual' && (
+                <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p className="text-green-800 dark:text-green-200 font-medium">
+                    💡 Ahorra 20% con planes anuales
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </section>
