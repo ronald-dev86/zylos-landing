@@ -102,7 +102,12 @@ export default function Signup() {
         needsManualLogin: data.data?.needsManualLogin
       });
       
-      const loginResult = await fetch(`${window.location.origin}/api/auth/login`, {
+      // Usar el subdominio del tenant para el login
+      const tenantDomain = data.data?.redirectUrl ? new URL(data.data.redirectUrl).origin : window.location.origin;
+      
+      console.log('🔍 DEBUG - Usando domain para login:', tenantDomain);
+      
+      const loginResult = await fetch(`${tenantDomain}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
