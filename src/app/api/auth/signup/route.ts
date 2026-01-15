@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       // Rollback tenant creation if auth fails
       await supabaseAdmin.from('tenants').delete().eq('id', tenantData.id);
       return NextResponse.json(
-        { success: false, error: 'Error al crear el usuario: ' + authError.message },
+        { success: false, error: 'Error al crear el usuario: ' + (authError?.message || 'Unknown error') },
         { status: 500 }
       );
     }
