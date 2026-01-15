@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
           expiresAt: data.session?.expires_at?.toString() || null,
           type: 'bearer',
         },
-        redirectUrl: `https://${(userData as any).tenants?.subdomain}.zylos.com/dashboard`,
+          redirectUrl: `http://${(userData as any).tenants?.subdomain}.localhost:3000/dashboard`,
       },
     });
 

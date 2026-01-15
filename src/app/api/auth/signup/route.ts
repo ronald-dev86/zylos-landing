@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
           user: user,
           tenant: tenant,
           needsManualLogin: true,
-          redirectUrl: `https://${tenant.subdomain}.zylos.com/login`
+          redirectUrl: `http://${tenant.subdomain}.localhost:3000/login`
         }
       });
     }
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
           token: session?.data?.session?.access_token,
           refreshToken: session?.data?.session?.refresh_token,
         },
-        redirectUrl: `https://${tenant.subdomain}.zylos.com/dashboard`
+        redirectUrl: `http://${tenant.subdomain}.localhost:3000/dashboard`
       }
     });
 

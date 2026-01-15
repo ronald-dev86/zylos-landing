@@ -102,8 +102,11 @@ export default function Signup() {
         needsManualLogin: data.data?.needsManualLogin
       });
       
-      // Usar el subdominio del tenant para el login
-      const tenantDomain = data.data?.redirectUrl ? new URL(data.data.redirectUrl).origin : window.location.origin;
+      // Para desarrollo local: simular subdominio con parámetro
+      const isLocalDev = window.location.hostname === 'localhost';
+      const tenantDomain = isLocalDev 
+        ? `${window.location.origin}?subdomain=${data.data?.tenant?.subdomain}`
+        : (data.data?.redirectUrl ? new URL(data.data.redirectUrl).origin : window.location.origin);
       
       console.log('🔍 DEBUG - Usando domain para login:', tenantDomain);
       
