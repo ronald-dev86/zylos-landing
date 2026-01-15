@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-
+    
     // Get user information with tenant
     const { data: userData, error: userError } = await supabase
       .from('users')
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
           subdomain
         )
       `)
-      .eq('id', data.user?.id)
+      .eq('tenant_id', data.user?.user_metadata.tenant_id)
       .maybeSingle();
 
     if (userError) {

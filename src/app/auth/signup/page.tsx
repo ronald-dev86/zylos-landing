@@ -1,8 +1,6 @@
 "use client";
 
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/shared/components/Button";
 import { Card } from "@/shared/components/Card";
 import { Input } from "@/shared/components/Input";
@@ -97,6 +95,7 @@ export default function Signup() {
 
       // Auto-login after successful signup
       const loginResult = await login(storeData.email, storeData.password);
+      console.log('Auto-login result:', loginResult);
       if (!loginResult.success) {
         setError("Cuenta creada pero error al iniciar sesión. Por favor intenta manualmente.");
       }
