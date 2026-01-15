@@ -94,8 +94,20 @@ export default function Signup() {
       }
 
       // Auto-login after successful signup
+      console.log('🔍 DEBUG - Iniciando auto-login con:', {
+        email: storeData.email,
+        passwordLength: storeData.password?.length,
+        signupSuccess: data.success,
+        redirectUrl: data.data?.redirectUrl,
+        needsManualLogin: data.data?.needsManualLogin
+      });
+      
       const loginResult = await login(storeData.email, storeData.password);
-      console.log('Auto-login result:', loginResult);
+      console.log('🔍 DEBUG - Auto-login result:', {
+        success: loginResult?.success,
+        error: loginResult?.error,
+        hasData: !!loginResult?.data
+      });
       if (!loginResult.success) {
         setError("Cuenta creada pero error al iniciar sesión. Por favor intenta manualmente.");
       }
