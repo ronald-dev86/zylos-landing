@@ -64,26 +64,26 @@ export class AuthService {
     }
 
       const user: User = {
-        id: userData.id,
-        email: userData.email,
-        tenant_id: userData.tenant_id,
-        role: userData.role,
-        created_at: userData.created_at,
-        updated_at: userData.updated_at,
+        id: (userData as any).id,
+        email: (userData as any).email,
+        tenant_id: (userData as any).tenant_id,
+        role: (userData as any).role,
+        created_at: (userData as any).created_at,
+        updated_at: (userData as any).updated_at,
       };
 
       return {
         success: true,
         data: {
           user,
-          tenant: userData.tenants,
+          tenant: (userData as any).tenants,
           auth: {
             token: data.session?.access_token || '',
             refreshToken: data.session?.refresh_token || '',
             expiresAt: data.session?.expires_at?.toString() || null,
             type: 'bearer',
           },
-          redirectUrl: `https://${userData.tenants?.subdomain}.zylos.com/dashboard`,
+          redirectUrl: `https://${(userData as any).tenants?.subdomain}.zylos.com/dashboard`,
         },
       };
     } catch (error) {
@@ -152,12 +152,12 @@ export class AuthService {
       }
 
       return {
-        id: userData.id,
-        email: userData.email,
-        tenant_id: userData.tenant_id,
-        role: userData.role,
-        created_at: userData.created_at,
-        updated_at: userData.updated_at,
+        id: (userData as any).id,
+        email: (userData as any).email,
+        tenant_id: (userData as any).tenant_id,
+        role: (userData as any).role,
+        created_at: (userData as any).created_at,
+        updated_at: (userData as any).updated_at,
       };
     } catch (error) {
       return null;

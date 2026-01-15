@@ -105,8 +105,7 @@ export default function Signup() {
       const loginResult = await login(storeData.email, storeData.password);
       console.log('🔍 DEBUG - Auto-login result:', {
         success: loginResult?.success,
-        error: loginResult?.error,
-        hasData: !!loginResult?.data
+        error: loginResult?.error
       });
       if (!loginResult.success) {
         setError("Cuenta creada pero error al iniciar sesión. Por favor intenta manualmente.");

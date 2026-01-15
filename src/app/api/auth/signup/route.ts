@@ -223,8 +223,8 @@ export async function POST(request: NextRequest) {
           subdomain: tenant.subdomain,
         },
         auth: {
-          token: session.session?.access_token,
-          refreshToken: session.session?.refresh_token,
+          token: session?.data?.session?.access_token,
+          refreshToken: session?.data?.session?.refresh_token,
         },
         redirectUrl: `https://${tenant.subdomain}.zylos.com/dashboard`
       }
