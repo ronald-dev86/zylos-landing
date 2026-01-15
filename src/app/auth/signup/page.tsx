@@ -93,8 +93,8 @@ export default function Signup() {
         return;
       }
 
-      // Auto-login after successful signup
-      console.log('🔍 DEBUG - Iniciando auto-login con:', {
+      // Auto-login after successful signup - usar API route en lugar de contexto
+      console.log('🔍 DEBUG - Iniciando auto-login con API route:', {
         email: storeData.email,
         passwordLength: storeData.password?.length,
         signupSuccess: data.success,
@@ -102,13 +102,29 @@ export default function Signup() {
         needsManualLogin: data.data?.needsManualLogin
       });
       
-      const loginResult = await login(storeData.email, storeData.password);
-      console.log('🔍 DEBUG - Auto-login result:', {
+      const loginResult = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: storeData.email,
+          password: storeData.password
+        })
+      }).then(res => res.json());
+      
+      console.log('🔍 DEBUG - API login result:', {
         success: loginResult?.success,
-        error: loginResult?.error
+        error: loginResult?.error,
+        hasRedirectUrl: !!loginResult?.data?.redirectUrl,
+        redirectUrl: loginResult?.data?.redirectUrl
       });
       if (!loginResult.success) {
         setError("Cuenta creada pero error al iniciar sesión. Por favor intenta manualmente.");
+      } else {
+        // Si el login fue exitoso, redirigir al subdominio
+        if (loginResult?.data?.redirectUrl) {
+          console.log('🔍 DEBUG - Redirigiendo a:', loginResult.data.redirectUrl);
+          window.location.href = loginResult.data.redirectUrl;
+        }
       }
 
     } catch (err) {
