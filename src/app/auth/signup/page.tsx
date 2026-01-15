@@ -102,7 +102,7 @@ export default function Signup() {
         needsManualLogin: data.data?.needsManualLogin
       });
       
-      const loginResult = await fetch('/api/auth/login', {
+      const loginResult = await fetch(`${window.location.origin}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
