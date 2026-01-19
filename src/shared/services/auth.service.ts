@@ -83,7 +83,7 @@ export class AuthService {
             expiresAt: data.session?.expires_at?.toString() || null,
             type: 'bearer',
           },
-          redirectUrl: `http://${(userData as any).tenants?.subdomain}.localhost:3000/dashboard`,
+          redirectUrl: `http://${(userData as any).tenants?.subdomain}.localhost:3000/`,
         },
       };
     } catch (error) {

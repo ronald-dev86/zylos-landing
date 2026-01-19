@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { Database, AuthResponse } from '@zylos/shared-types';
+import { buildTenantUrl } from '@/shared/utils/urlHelper';
 
 const SignupSchema = z.object({
   storeName: z.string().min(2, 'El nombre de la tienda debe tener al menos 2 caracteres'),
@@ -167,68 +168,46 @@ export async function POST(request: NextRequest) {
 
     console.log('🎉 VERIFICACIÓN FINAL: 3/3 REGLAS CUMPLIDAS - Tenant creado exitosamente');
 
-    // Create session - esperar más tiempo y reintentar
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    let retries = 3;
-    let session = null;
-    let sessionError = null;
-    
-    while (retries > 0 && !session) {
-      const result = await supabase.auth.signInWithPassword({
-        email: validatedData.email,
-        password: validatedData.password,
-      });
-      
-      if (!result.error) {
-        session = result;
-        break;
-      }
-      
-      sessionError = result.error;
-      retries--;
-      if (retries > 0) {
-        console.log(`⚠️ Intento de sesión fallido, reintentando en 2s... (${retries} intentos restantes)`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    }
+    // Preparar datos para página de éxito (SIN TOKENS)
+    const successData = {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        subdomain: tenant.subdomain,
+      },
+      redirectUrl: buildTenantUrl(tenant.subdomain, '/login')
+    };
 
-    if (sessionError) {
-      console.error('Error creating session:', sessionError);
-      return NextResponse.json({
-        success: true,
-        message: '✅ Cuenta creada exitosamente - Por favor inicia sesión manualmente',
-        data: {
-          user: user,
-          tenant: tenant,
-          needsManualLogin: true,
-          redirectUrl: `http://${tenant.subdomain}.localhost:3000/login`
-        }
-      });
-    }
+    console.log('🎉 VERIFICACIÓN FINAL: 3/3 REGLAS CUMPLIDAS - Tenant creado exitosamente');
 
-    return NextResponse.json({
-      success: true,
-      message: '✅ 3/3 REGLAS CUMPLIDAS: Tenant y usuario creados exitosamente',
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        },
-        tenant: {
-          id: tenant.id,
-          name: tenant.name,
-          subdomain: tenant.subdomain,
-        },
-        auth: {
-          token: session?.data?.session?.access_token,
-          refreshToken: session?.data?.session?.refresh_token,
-        },
-        redirectUrl: `http://${tenant.subdomain}.localhost:3000/dashboard`
-      }
-    });
+    // Crear dos cookies: una HttpOnly (servidor) y una normal (cliente)
+    const cookieValue = Buffer.from(JSON.stringify(successData)).toString('base64');
+    const isSecure = process.env.NODE_ENV === 'production';
+    
+    // Cookie HttpOnly (para seguridad - no accesible por JS)
+    const httpOnlyCookie = `zylos_signup_secure=${cookieValue}; Max-Age=86400; Path=/; HttpOnly; ${isSecure ? 'Secure; ' : ''}SameSite=Strict`;
+    
+    // Cookie normal (para acceso por JS en success page)
+    const clientCookie = `zylos_signup_success=${cookieValue}; Max-Age=86400; Path=/; ${isSecure ? 'Secure; ' : ''}SameSite=Strict`;
+
+    const response = NextResponse.redirect(
+      new URL('/auth/signup/success', request.url),
+      { status: 302 }
+    );
+
+    // Configurar ambas cookies
+    response.headers.set('Set-Cookie', httpOnlyCookie);
+    response.headers.append('Set-Cookie', clientCookie);
+    
+    // Cookie configurada exitosamente
+    
+    return response;
 
   } catch (error) {
     console.error('Signup error:', error);

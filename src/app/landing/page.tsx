@@ -5,6 +5,7 @@ import { Button } from "@/shared/components/Button";
 import { Card } from "@/shared/components/Card";
 import Link from "next/link";
 import { useAuth } from "@/shared/contexts/AuthContext";
+import CookieManager from "@/shared/components/CookieManager";
 
 export default function Landing() {
   const { user, isAuthenticated, tenant } = useAuth();
@@ -71,12 +72,12 @@ export default function Landing() {
               <a href="#pricing" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Precios</a>
               <a href="#features" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Características</a>
               {isAuthenticated ? (
-                <Link href={`https://${tenant?.subdomain}.zylos.com/dashboard`}>
+                <Link href={`https://${tenant?.subdomain || 'app'}.zylos.com/`} target="_blank" rel="noopener noreferrer">
                   <Button className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
                       {user?.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    Dashboard
+                    Ir a mi Tienda
                   </Button>
                 </Link>
               ) : (
@@ -351,7 +352,10 @@ export default function Landing() {
             </p>
           </div>
         </div>
-      </footer>
-    </div>
+       </footer>
+       
+       {/* Cookie Manager para Testing */}
+       <CookieManager />
+     </div>
   );
 }

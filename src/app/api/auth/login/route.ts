@@ -36,6 +36,7 @@ const LoginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/auth/login');
     const body = await request.json();
     
     // Validate input
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+    console.log('signInWithPassword',data);
     
     // Get user information with tenant
     const { data: userData, error: userError } = await supabase
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Return successful login response
-    return NextResponse.json({
+    const response = {
       success: true,
       data: {
         user: userData,
@@ -105,9 +107,18 @@ export async function POST(request: NextRequest) {
           expiresAt: data.session?.expires_at?.toString() || null,
           type: 'bearer',
         },
-          redirectUrl: `http://${(userData as any).tenants?.subdomain}.localhost:3000/dashboard`,
+        redirectUrl: `https://${(userData as any).tenants?.subdomain}.zylos.com/`,
       },
-    });
+      debug: {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        currentDomain: process.env.NEXT_PUBLIC_PLATFORM_URL,
+        userFound: !!userData,
+        tenantSubdomain: (userData as any).tenants?.subdomain
+      }
+    };
+
+    console.log('✅ Login success response:', response);
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Login error:', error);

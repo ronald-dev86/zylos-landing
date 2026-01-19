@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { User } from '@zylos/shared-types';
 import { authService } from '@/shared/services/auth.service';
+import { getSignupCookie } from '@/shared/utils/signupCookie';
 
 interface AuthContextType {
   user: User | null;
@@ -24,9 +25,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       const { token, user: storedUser, tenant: storedTenant } = authService.getStoredAuthData();
       
+      // Verificar también cookies de signup para el estado de autenticación
+      const signupCookie = getSignupCookie();
+      
       if (token && storedUser) {
         setUser(storedUser);
         setTenant(storedTenant);
+      } else if (signupCookie) {
+        // Si hay cookie de signup, considerar como autenticado para mostrar botón de dashboard
+        setUser(signupCookie.user);
+        setTenant(signupCookie.tenant);
       } else {
         // Try to get current session from Supabase
         const currentUser = await authService.getCurrentUser();

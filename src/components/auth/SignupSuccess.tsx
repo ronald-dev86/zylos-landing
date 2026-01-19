@@ -55,7 +55,7 @@ export function SignupSuccess({ userId, tenantId, onUserReady }: SignupSuccessPr
             </svg>
           </div>
           <p className="text-green-600 dark:text-green-400 mb-2">¡Tienda configurada!</p>
-          <p className="text-gray-600 dark:text-gray-400">Redirigiendo a tu dashboard...</p>
+          <p className="text-gray-600 dark:text-gray-400">Redirigiendo a tu tienda...</p>
         </div>
       </div>
     );

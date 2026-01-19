@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/shared/components/Button";
 import { Card } from "@/shared/components/Card";
-import { Input } from "@/shared/components/Input";
 import Link from "next/link";
 import { useAuth } from "@/shared/contexts/AuthContext";
 
@@ -86,12 +85,46 @@ export default function Signup() {
         })
       });
 
-      const data = await response.json();
-
-      if (!data.success) {
-        setError(data.error || "Error al crear la tienda");
+      const contentType = response.headers.get('content-type');
+      
+      // Manejar redirección (status 302) o response JSON
+      if (response.status === 302 || response.redirected) {
+        // El API redirigió correctamente, seguirla
+        window.location.href = response.url;
         return;
       }
+      
+      // Manejar response JSON (fallback por si acaso)
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        
+        if (data.success && data.redirect) {
+          // Guardar datos en localStorage como fallback
+          if (data.data) {
+            localStorage.setItem('signupSuccess', JSON.stringify(data.data));
+          }
+          
+          // Redirigir a página de éxito
+          window.location.href = data.redirect;
+          return;
+        }
+        
+        if (!data.success) {
+          setError(data.error || "Error al crear la tienda");
+          return;
+        }
+      }
+
+      // Si llegamos aquí, hay un error inesperado
+      const text = await response.text();
+      console.error('🔍 Response inesperado:', {
+        status: response.status,
+        contentType: contentType,
+        url: response.url,
+        text: text.substring(0, 200) + '...'
+      });
+      
+      setError("Error inesperado. Por favor intenta nuevamente.");
 
       // Auto-login after successful signup - usar API route en lugar de contexto
       console.log('🔍 DEBUG - Iniciando auto-login con API route:', {
