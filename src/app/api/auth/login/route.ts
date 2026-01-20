@@ -12,11 +12,21 @@ interface User {
   updated_at: string;
 }
 
+interface Tenant {
+  id: string;
+  name: string;
+  subdomain: string;
+}
+
+interface UserWithTenant extends User {
+  tenants: Tenant;
+}
+
 interface AuthResponse {
   success: boolean;
   data?: {
     user: User;
-    tenant?: any;
+    tenant?: Tenant;
     auth?: {
       token: string;
       refreshToken: string;
@@ -36,7 +46,6 @@ const LoginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('POST /api/auth/login');
     const body = await request.json();
     
     // Validate input
@@ -59,7 +68,6 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-    console.log('signInWithPassword',data);
     
     // Get user information with tenant
     const { data: userData, error: userError } = await supabase
@@ -77,11 +85,10 @@ export async function POST(request: NextRequest) {
           subdomain
         )
       `)
-      .eq('tenant_id', data.user?.user_metadata.tenant_id)
+      .eq('id', data.user?.id)
       .maybeSingle();
 
     if (userError) {
-      console.error('User query error:', userError);
       return NextResponse.json(
         { success: false, error: 'Error al obtener información del usuario' },
         { status: 500 }
@@ -95,34 +102,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return successful login response
-    const response = {
+    // Type-safe tenant extraction
+    const userWithTenant = userData as UserWithTenant;
+    const tenant = userWithTenant.tenants;
+
+    // Clear signup cookies since user is now properly logged in
+    const cookieOptions = {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      path: '/',
+    };
+
+    const response = NextResponse.json({
       success: true,
       data: {
         user: userData,
-        tenant: (userData as any).tenants,
+        tenant: tenant,
         auth: {
           token: data.session?.access_token || '',
           refreshToken: data.session?.refresh_token || '',
           expiresAt: data.session?.expires_at?.toString() || null,
           type: 'bearer',
         },
-        redirectUrl: `https://${(userData as any).tenants?.subdomain}.zylos.com/`,
-      },
-      debug: {
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        currentDomain: process.env.NEXT_PUBLIC_PLATFORM_URL,
-        userFound: !!userData,
-        tenantSubdomain: (userData as any).tenants?.subdomain
+        redirectUrl: `https://${tenant?.subdomain || 'app'}.zylos.com/`,
       }
-    };
+    });
 
-    console.log('✅ Login success response:', response);
-    return NextResponse.json(response);
+    // Clear signup cookies - user is now properly authenticated
+    response.cookies.set('zylos_signup_secure', '', { 
+      ...cookieOptions, 
+      expires: new Date(0) 
+    });
+    
+    response.cookies.set('zylos_signup_success', '', { 
+      ...cookieOptions, 
+      expires: new Date(0) 
+    });
+
+    return response;
 
   } catch (error) {
-    console.error('Login error:', error);
-    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: error.issues[0]?.message || 'Error de validación' },

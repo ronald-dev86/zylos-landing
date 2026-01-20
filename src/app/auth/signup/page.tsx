@@ -125,15 +125,8 @@ export default function Signup() {
       });
       
       setError("Error inesperado. Por favor intenta nuevamente.");
-
-      // Auto-login after successful signup - usar API route en lugar de contexto
-      console.log('🔍 DEBUG - Iniciando auto-login con API route:', {
-        email: storeData.email,
-        passwordLength: storeData.password?.length,
-        signupSuccess: data.success,
-        redirectUrl: data.data?.redirectUrl,
-        needsManualLogin: data.data?.needsManualLogin
-      });
+      return;
+    }
       
       // Para desarrollo local: simular subdominio con parámetro
       const isLocalDev = window.location.hostname === 'localhost';
