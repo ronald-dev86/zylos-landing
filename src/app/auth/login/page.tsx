@@ -27,6 +27,7 @@ function LoginContent() {
 
     try {
       const result = await login(email, password);
+      console.log('Login result:', result);
       
       if (result.success) {
         // Redirect will be handled by the AuthContext

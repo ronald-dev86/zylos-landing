@@ -87,12 +87,29 @@ export default function Signup() {
 
       const contentType = response.headers.get('content-type');
       
-      // Manejar redirección (status 302) o response JSON
-      if (response.status === 302 || response.redirected) {
-        // El API redirigió correctamente, seguirla
-        window.location.href = response.url;
+      // Response exitosa - procesar datos
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        console.log('🔍 DEBUG - Redirigiendo a página de éxito:', data.data?.redirectUrl);
+        
+        // Redirigir a página de éxito con datos del tenant
+        if (data.data?.redirectUrl) {
+          window.location.href = data.data.redirectUrl.replace('/dashboard', '/auth/signup/success');
+        }
         return;
       }
+      
+      // Si llegamos aquí, hay un error inesperado
+      const text = await response.text();
+      console.error('🔍 Response inesperado:', {
+        status: response.status,
+        contentType: contentType,
+        url: response.url,
+        text: text.substring(0, 200) + '...'
+      });
+      
+      setError("Error inesperado. Por favor intenta nuevamente.");
+      return;
       
       // Manejar response JSON (fallback por si acaso)
       if (contentType?.includes('application/json')) {
@@ -113,55 +130,17 @@ export default function Signup() {
           setError(data.error || "Error al crear la tienda");
           return;
         }
-      }
-
-      // Si llegamos aquí, hay un error inesperado
-      const text = await response.text();
-      console.error('🔍 Response inesperado:', {
-        status: response.status,
-        contentType: contentType,
-        url: response.url,
-        text: text.substring(0, 200) + '...'
-      });
-      
-      setError("Error inesperado. Por favor intenta nuevamente.");
-      return;
-    }
-      
-      // Para desarrollo local: simular subdominio con parámetro
-      const isLocalDev = window.location.hostname === 'localhost';
-      const tenantDomain = isLocalDev 
-        ? `${window.location.origin}?subdomain=${data.data?.tenant?.subdomain}`
-        : (data.data?.redirectUrl ? new URL(data.data.redirectUrl).origin : window.location.origin);
-      
-      console.log('🔍 DEBUG - Usando domain para login:', tenantDomain);
-      
-      const loginResult = await fetch(`${tenantDomain}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: storeData.email,
-          password: storeData.password
-        })
-      }).then(res => res.json());
-      
-      console.log('🔍 DEBUG - API login result:', {
-        success: loginResult?.success,
-        error: loginResult?.error,
-        hasRedirectUrl: !!loginResult?.data?.redirectUrl,
-        redirectUrl: loginResult?.data?.redirectUrl
-      });
-      if (!loginResult.success) {
-        setError("Cuenta creada pero error al iniciar sesión. Por favor intenta manualmente.");
-      } else {
-        // Si el login fue exitoso, redirigir al subdominio
-        if (loginResult?.data?.redirectUrl) {
-          console.log('🔍 DEBUG - Redirigiendo a:', loginResult.data.redirectUrl);
-          window.location.href = loginResult.data.redirectUrl;
+        
+        // Response exitosa - redirigir a página de éxito
+        console.log('🔍 DEBUG - Redirigiendo a página de éxito:', data.data?.redirectUrl);
+        
+        if (data.data?.redirectUrl) {
+          window.location.href = data.data.redirectUrl.replace('/dashboard', '/auth/signup/success');
         }
+        return;
       }
 
-    } catch (err) {
+  } catch (err) {
       setError("Error al crear la tienda. Por favor intente nuevamente.");
       console.error('Signup error:', err);
     } finally {

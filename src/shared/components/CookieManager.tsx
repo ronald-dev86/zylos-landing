@@ -92,7 +92,7 @@ export default function CookieManager() {
                 <Button
                   onClick={handleClearCookie}
                   size="sm"
-                  variant="destructive"
+                  variant="danger"
                   className="w-full"
                 >
                   🗑️ Limpiar Cookie

@@ -33,7 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTenant(storedTenant);
       } else if (signupCookie) {
         // Si hay cookie de signup, considerar como autenticado para mostrar botón de dashboard
-        setUser(signupCookie.user);
+        setUser({
+          id: signupCookie.user.id,
+          email: signupCookie.user.email,
+          tenant_id: '', // Temporal, ya que viene de signup
+          role: signupCookie.user.role as any,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
         setTenant(signupCookie.tenant);
       } else {
         // Try to get current session from Supabase
@@ -53,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const result = await authService.login(email, password);
+    console.log('AuthContext login result:', result);
     
     if (result.success) {
       if (result.data) {

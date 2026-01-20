@@ -57,6 +57,8 @@ export function getSignupCookie(): SignupCookieData | null {
 
   try {
     const cookieValue = targetCookie.split('=')[1];
+    if (!cookieValue) return null;
+    
     const decodedData = atob(cookieValue);
     const parsedData = JSON.parse(decodedData);
     

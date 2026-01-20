@@ -17,7 +17,7 @@ export class AuthService {
       
       console.log('🔍 DEBUG - Supabase response:', { 
         hasData: !!data, 
-        hasUser: !!data?.user,
+        hasUser: data?.user,
         hasError: !!error,
         errorMessage: error?.message 
       });
@@ -46,7 +46,7 @@ export class AuthService {
           )
         `)
         .eq('id', data.user?.id)
-        .maybeSingle();
+        .single();
 
     if (userError) {
       console.error('User query error:', userError);
