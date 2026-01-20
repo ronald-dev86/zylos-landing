@@ -174,7 +174,21 @@ export class AuthService {
     user: User | null;
     tenant: any | null;
   } {
-    // Primero intentar obtener desde cookies de signup
+    // Siempre obtener token desde localStorage (solo se guarda en login real)
+    const token = localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('user_data');
+    const tenantData = localStorage.getItem('tenant_data');
+
+    // Si hay token en localStorage, usar datos de localStorage (login real)
+    if (token) {
+      return {
+        token,
+        user: userData ? JSON.parse(userData) : null,
+        tenant: tenantData ? JSON.parse(tenantData) : null,
+      };
+    }
+
+    // Si no hay token, intentar obtener desde cookies de signup (estado post-signup)
     const signupCookie = getSignupCookie();
     if (signupCookie) {
       return {
@@ -182,7 +196,7 @@ export class AuthService {
         user: {
           id: signupCookie.user.id,
           email: signupCookie.user.email,
-          tenant_id: '', // Temporal
+          tenant_id: signupCookie.user.tenant_id || '', // Usar tenant_id del cookie si existe
           role: signupCookie.user.role as any,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -194,15 +208,11 @@ export class AuthService {
       };
     }
 
-    // Fallback a localStorage
-    const token = localStorage.getItem('auth_token');
-    const userData = localStorage.getItem('user_data');
-    const tenantData = localStorage.getItem('tenant_data');
-
+    // No hay datos de autenticación
     return {
-      token,
-      user: userData ? JSON.parse(userData) : null,
-      tenant: tenantData ? JSON.parse(tenantData) : null,
+      token: null,
+      user: null,
+      tenant: null,
     };
   }
 
