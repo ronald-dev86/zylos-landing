@@ -83,18 +83,36 @@ export default function Signup() {
           password: storeData.password
         })
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.message || "Error al crear la tienda. Por favor intente nuevamente.");
-      } 
+      // Verificar si la respuesta es una redirección
+      if (response.redirected || response.status === 302) {
+        // El API redirigió correctamente (éxito)
+        window.location.href = response.url;
+        return;
+      }
 
-      // Response exitosa - procesar datos
-      const data = await response.json();
-      console.log('🔍 DEBUG - Redirigiendo a página de éxito:', data.data?.redirectUrl);
+      // Si no es redirección, procesar response JSON
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
         
-      // Redirigir a página de éxito con datos del tenant
-      if (data.data?.redirectUrl) {
-        window.location.href = data.data.redirectUrl.replace('/dashboard', '/auth/signup/success');
+        if (!data.success) {
+          setError(data.error || "Error al crear la tienda. Por favor intente nuevamente.");
+          return;
+        }
+        
+        // Redirigir a página de éxito con datos del tenant
+        if (data.data?.redirectUrl) {
+          window.location.href = data.data.redirectUrl.replace('/dashboard', '/auth/signup/success');
+        }
+      } else {
+        // Response inesperada que no es JSON
+        console.error('Response no es JSON:', {
+          status: response.status,
+          contentType,
+          url: response.url
+        });
+        setError("Error inesperado. Por favor intenta nuevamente.");
       }
       
   } catch (err) {
