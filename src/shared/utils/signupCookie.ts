@@ -1,19 +1,12 @@
+import { Tenant, User } from "../types/schemas";
+
 // Utility functions para manejo seguro de cookies
 const COOKIE_NAME = 'zylos_signup_success';
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 24 horas
 
 export interface SignupCookieData {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
-  tenant: {
-    id: string;
-    name: string;
-    subdomain: string;
-  };
+  user: User
+  tenant: Tenant; 
   redirectUrl: string;
 }
 

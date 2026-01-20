@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import type { User } from '@zylos/shared-types';
+import type { Tenant, User } from '@zylos/shared-types';
 import { authService } from '@/shared/services/auth.service';
 import { getSignupCookie } from '@/shared/utils/signupCookie';
 
@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [tenant, setTenant] = useState<any | null>(null);
+  const [tenant, setTenant] = useState<Tenant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,7 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
-        setTenant(signupCookie.tenant);
+        setTenant({
+          ...signupCookie.tenant,
+          active: true // Asumimos que el tenant está activo
+        });
       } else {
         // Try to get current session from Supabase
         const currentUser = await authService.getCurrentUser();
@@ -65,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (result.success) {
       if (result.data) {
         setUser(result.data.user);
-        setTenant(result.data.tenant);
+        setTenant(result.data.tenant || null);
         authService.saveAuthData(result);
         
         // Redirect to tenant dashboard

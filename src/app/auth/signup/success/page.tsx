@@ -5,23 +5,12 @@ import { Button } from "@/shared/components/Button";
 import { Card } from "@/shared/components/Card";
 import Link from "next/link";
 import { getSignupCookie, clearSignupCookie, type SignupCookieData } from "@/shared/utils/signupCookie";
-import { getBaseDomain } from "@/shared/utils/domainConfig";
+import { Tenant, User } from "@/shared/types/schemas";
 
 interface SignupSuccessData {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    // NOTA: NO incluir tokens aquí - solo datos públicos
-  };
-  tenant: {
-    id: string;
-    name: string;
-    subdomain: string;
-  };
+  user: User;
+  tenant: Tenant;
   redirectUrl: string;
-  // NOTA: Los tokens JWT NUNCA deben estar en query params o localStorage
 }
 
 function SignupSuccessContent() {
@@ -31,14 +20,9 @@ function SignupSuccessContent() {
   // Obtener datos del signup después de montar el componente
   useEffect(() => {
     const data = getSignupCookie();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSignupData(data);
     
-    console.log('🔍 Datos desde cookie (client-side):', { 
-      hasData: !!data,
-      userEmail: data?.user?.email,
-      tenantName: data?.tenant?.name,
-      method: 'COOKIES HttpOnly y Secure'
-    });
   }, []); // Solo ejecutar al montar
 
   const handleGoToPlatform = () => {
@@ -112,7 +96,7 @@ function SignupSuccessContent() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-slate-600 dark:text-slate-400">Nombre:</span>
-                <span className="font-medium text-slate-900 dark:text-white">{signupData.user.name}</span>
+                <span className="font-medium text-slate-900 dark:text-white">{signupData.user.email}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600 dark:text-slate-400">Email:</span>

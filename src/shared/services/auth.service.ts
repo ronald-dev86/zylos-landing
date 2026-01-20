@@ -6,20 +6,10 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      console.log('🔍 DEBUG - Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-      console.log('🔍 DEBUG - Current domain:', typeof window !== 'undefined' ? window.location.origin : 'Server');
-      console.log('🔍 DEBUG - Intentando login con email:', email);
-      
+      // Sign in with email and password     
       const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
         password,
-      });
-      
-      console.log('🔍 DEBUG - Supabase response:', { 
-        hasData: !!data, 
-        hasUser: data?.user,
-        hasError: !!error,
-        errorMessage: error?.message 
       });
 
       if (error) {
@@ -83,7 +73,7 @@ export class AuthService {
             expiresAt: data.session?.expires_at?.toString() || null,
             type: 'bearer',
           },
-          redirectUrl: `http://${(userData as any).tenants?.subdomain}.localhost:3000/`,
+          redirectUrl: `http://${(userData as any).tenants?.subdomain}.localhost:3001/`,
         },
       };
     } catch (error) {

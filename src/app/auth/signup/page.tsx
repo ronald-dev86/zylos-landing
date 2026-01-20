@@ -4,10 +4,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/shared/components/Button";
 import { Card } from "@/shared/components/Card";
 import Link from "next/link";
-import { useAuth } from "@/shared/contexts/AuthContext";
+
 
 export default function Signup() {
-  const { login } = useAuth();
   const [storeData, setStoreData] = useState({
     storeName: "",
     subdomain: "",
@@ -84,62 +83,20 @@ export default function Signup() {
           password: storeData.password
         })
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.message || "Error al crear la tienda. Por favor intente nuevamente.");
+      } 
 
-      const contentType = response.headers.get('content-type');
-      
       // Response exitosa - procesar datos
-      if (contentType?.includes('application/json')) {
-        const data = await response.json();
-        console.log('🔍 DEBUG - Redirigiendo a página de éxito:', data.data?.redirectUrl);
+      const data = await response.json();
+      console.log('🔍 DEBUG - Redirigiendo a página de éxito:', data.data?.redirectUrl);
         
-        // Redirigir a página de éxito con datos del tenant
-        if (data.data?.redirectUrl) {
-          window.location.href = data.data.redirectUrl.replace('/dashboard', '/auth/signup/success');
-        }
-        return;
+      // Redirigir a página de éxito con datos del tenant
+      if (data.data?.redirectUrl) {
+        window.location.href = data.data.redirectUrl.replace('/dashboard', '/auth/signup/success');
       }
       
-      // Si llegamos aquí, hay un error inesperado
-      const text = await response.text();
-      console.error('🔍 Response inesperado:', {
-        status: response.status,
-        contentType: contentType,
-        url: response.url,
-        text: text.substring(0, 200) + '...'
-      });
-      
-      setError("Error inesperado. Por favor intenta nuevamente.");
-      return;
-      
-      // Manejar response JSON (fallback por si acaso)
-      if (contentType?.includes('application/json')) {
-        const data = await response.json();
-        
-        if (data.success && data.redirect) {
-          // Guardar datos en localStorage como fallback
-          if (data.data) {
-            localStorage.setItem('signupSuccess', JSON.stringify(data.data));
-          }
-          
-          // Redirigir a página de éxito
-          window.location.href = data.redirect;
-          return;
-        }
-        
-        if (!data.success) {
-          setError(data.error || "Error al crear la tienda");
-          return;
-        }
-        
-        // Response exitosa - redirigir a página de éxito
-        console.log('🔍 DEBUG - Redirigiendo a página de éxito:', data.data?.redirectUrl);
-        
-        if (data.data?.redirectUrl) {
-          window.location.href = data.data.redirectUrl.replace('/dashboard', '/auth/signup/success');
-        }
-        return;
-      }
-
   } catch (err) {
       setError("Error al crear la tienda. Por favor intente nuevamente.");
       console.error('Signup error:', err);

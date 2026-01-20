@@ -22,13 +22,17 @@ export default function CookieManager() {
       user: {
         id: "demo-user-id",
         email: "demo@ejemplo.com",
-        name: "Usuario Demo",
-        role: "admin"
+        tenant_id: "demo-tenant-id",
+        role: "admin",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       tenant: {
         id: "demo-tenant-id",
         name: "Tienda Demo",
-        subdomain: "demo"
+        subdomain: "demo",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       redirectUrl: `https://demo.${getBaseDomain()}/login`
     };
