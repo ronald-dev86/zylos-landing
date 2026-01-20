@@ -100,52 +100,38 @@ export async function POST(request: NextRequest) {
     // Small delay to allow trigger to execute
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Verificar si el trigger funcionó correctamente
+    // Verificar que el trigger funcionó correctamente
     const { data: userRecord, error: userCheckError } = await supabase
       .from('users')
       .select('id, email, tenant_id, role')
       .eq('id', authData.user.id)
       .single();
 
-    const user = userRecord || {
-      id: authData.user.id,
-      email: validatedData.email,
-      name: validatedData.ownerName,
-      role: 'admin',
-      tenant_id: tenantData.id
-    };
-
     if (userCheckError || !userRecord) {
-      console.log('⚠️ Trigger falló, creando usuario manualmente en public.users');
+      console.error('❌ Error crítico: El trigger no funcionó. Usuario no encontrado en public.users');
       
-      const { error: manualUserError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: validatedData.email,
-          tenant_id: tenantData.id,
-          role: 'admin'
-        });
-
-      if (manualUserError) {
-        console.error('Manual user creation failed:', manualUserError);
-        // Rollback completo si falla todo
-        await supabase.from('tenants').delete().eq('id', tenantData.id);
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: 'Error crítico: No se pudo crear el registro de usuario. Contacta soporte.',
-            details: manualUserError.message 
-          },
-          { status: 500 }
-        );
-      }
-      
-      console.log('✅ REGLA 3 CUMPLIDA: Usuario creado manualmente en public.users');
-    } else {
-      console.log('✅ REGLA 3 CUMPLIDA: Usuario creado por trigger en public.users');
+      // Rollback completo
+      await supabase.from('tenants').delete().eq('id', tenantData.id);
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Error crítico: No se pudo crear el registro de usuario. Contacta soporte.',
+          details: userCheckError?.message || 'Trigger falló' 
+        },
+        { status: 500 }
+      );
     }
+    
+    console.log('✅ REGLA 3 CUMPLIDA: Usuario creado por trigger en public.users');
+    
+    const user = {
+      id: userRecord.id,
+      email: userRecord.email,
+      name: validatedData.ownerName,
+      role: userRecord.role,
+      tenant_id: userRecord.tenant_id
+    };
 
     const tenant = {
       id: tenantData.id,
