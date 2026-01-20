@@ -99,10 +99,8 @@ export class AuthService {
       }
 
       
-      // Clear signup cookies
+      // Limpiar todas las cookies (signup y auth)
       clearSignupCookie();
-      
-      // Clear auth cookies
       clearAuthCookie();
 
       return {
@@ -161,22 +159,13 @@ export class AuthService {
 
   saveAuthData(authResponse: AuthResponse): void {
     if (authResponse.success && authResponse.data) {
-      // Guardar en localStorage (comportamiento existente)
-      localStorage.setItem('auth_token', authResponse.data.auth?.token || '');
-      localStorage.setItem('user_data', JSON.stringify(authResponse.data.user));
-      localStorage.setItem('tenant_data', JSON.stringify(authResponse.data.tenant));
-      
-      // También guardar en cookies para consistencia con signup
+      // Guardar únicamente en cookies (eliminado localStorage)
       setAuthCookie(authResponse);
     }
   }
 
   clearAuthData(): void {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
-    localStorage.removeItem('tenant_data');
-    
-    // También limpiar auth cookies
+    // Limpiar únicamente cookies (localStorage eliminado)
     clearAuthCookie();
   }
 
@@ -185,7 +174,7 @@ export class AuthService {
     user: User | null;
     tenant: any | null;
   } {
-    // 1. Primero intentar obtener desde cookies de auth (login real con cookies)
+    // 1. Priorizar cookies de auth (login real)
     const authCookie = getAuthCookie();
     if (authCookie) {
       return {
@@ -195,20 +184,7 @@ export class AuthService {
       };
     }
 
-    // 2. Fallback a localStorage (login real tradicional)
-    const token = localStorage.getItem('auth_token');
-    const userData = localStorage.getItem('user_data');
-    const tenantData = localStorage.getItem('tenant_data');
-
-    if (token) {
-      return {
-        token,
-        user: userData ? JSON.parse(userData) : null,
-        tenant: tenantData ? JSON.parse(tenantData) : null,
-      };
-    }
-
-    // 3. Si no hay token, intentar desde cookies de signup (estado post-signup)
+    // 2. Fallback a cookies de signup (estado post-signup)
     const signupCookie = getSignupCookie();
     if (signupCookie) {
       return {
@@ -228,7 +204,7 @@ export class AuthService {
       };
     }
 
-    // 4. No hay datos de autenticación
+    // 3. No hay datos de autenticación
     return {
       token: null,
       user: null,
