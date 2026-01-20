@@ -1,6 +1,7 @@
 import { createClient } from '@/infrastructure/supabase-client/client';
-import { clearSignupCookie } from '@/shared/utils/signupCookie';
+import { clearSignupCookie, getSignupCookie } from '@/shared/utils/signupCookie';
 import type { User, AuthResponse } from '@zylos/shared-types';
+import { Tenant } from '../types/schemas';
 
 export class AuthService {
   private supabase = createClient();
@@ -96,10 +97,6 @@ export class AuthService {
         };
       }
 
-      // Clear local storage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_data');
-      localStorage.removeItem('tenant_data');
       
       // Clear signup cookies
       clearSignupCookie();
@@ -177,6 +174,27 @@ export class AuthService {
     user: User | null;
     tenant: any | null;
   } {
+    // Primero intentar obtener desde cookies de signup
+    const signupCookie = getSignupCookie();
+    if (signupCookie) {
+      return {
+        token: null, // No hay token en signup cookies
+        user: {
+          id: signupCookie.user.id,
+          email: signupCookie.user.email,
+          tenant_id: '', // Temporal
+          role: signupCookie.user.role as any,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        tenant: {
+          ...signupCookie.tenant,
+          active: true
+        }
+      };
+    }
+
+    // Fallback a localStorage
     const token = localStorage.getItem('auth_token');
     const userData = localStorage.getItem('user_data');
     const tenantData = localStorage.getItem('tenant_data');
