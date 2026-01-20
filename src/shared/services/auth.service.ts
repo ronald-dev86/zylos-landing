@@ -1,5 +1,6 @@
 import { createClient } from '@/infrastructure/supabase-client/client';
 import { clearSignupCookie, getSignupCookie } from '@/shared/utils/signupCookie';
+import { setAuthCookie, getAuthCookie, clearAuthCookie } from '@/shared/utils/authCookie';
 import type { User, AuthResponse } from '@zylos/shared-types';
 import { Tenant } from '../types/schemas';
 
@@ -100,6 +101,9 @@ export class AuthService {
       
       // Clear signup cookies
       clearSignupCookie();
+      
+      // Clear auth cookies
+      clearAuthCookie();
 
       return {
         success: true,
@@ -157,9 +161,13 @@ export class AuthService {
 
   saveAuthData(authResponse: AuthResponse): void {
     if (authResponse.success && authResponse.data) {
+      // Guardar en localStorage (comportamiento existente)
       localStorage.setItem('auth_token', authResponse.data.auth?.token || '');
       localStorage.setItem('user_data', JSON.stringify(authResponse.data.user));
       localStorage.setItem('tenant_data', JSON.stringify(authResponse.data.tenant));
+      
+      // También guardar en cookies para consistencia con signup
+      setAuthCookie(authResponse);
     }
   }
 
@@ -167,6 +175,9 @@ export class AuthService {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     localStorage.removeItem('tenant_data');
+    
+    // También limpiar auth cookies
+    clearAuthCookie();
   }
 
   getStoredAuthData(): {
@@ -174,12 +185,21 @@ export class AuthService {
     user: User | null;
     tenant: any | null;
   } {
-    // Siempre obtener token desde localStorage (solo se guarda en login real)
+    // 1. Primero intentar obtener desde cookies de auth (login real con cookies)
+    const authCookie = getAuthCookie();
+    if (authCookie) {
+      return {
+        token: authCookie.token,
+        user: authCookie.user,
+        tenant: authCookie.tenant,
+      };
+    }
+
+    // 2. Fallback a localStorage (login real tradicional)
     const token = localStorage.getItem('auth_token');
     const userData = localStorage.getItem('user_data');
     const tenantData = localStorage.getItem('tenant_data');
 
-    // Si hay token en localStorage, usar datos de localStorage (login real)
     if (token) {
       return {
         token,
@@ -188,7 +208,7 @@ export class AuthService {
       };
     }
 
-    // Si no hay token, intentar obtener desde cookies de signup (estado post-signup)
+    // 3. Si no hay token, intentar desde cookies de signup (estado post-signup)
     const signupCookie = getSignupCookie();
     if (signupCookie) {
       return {
@@ -196,7 +216,7 @@ export class AuthService {
         user: {
           id: signupCookie.user.id,
           email: signupCookie.user.email,
-          tenant_id: signupCookie.user.tenant_id || '', // Usar tenant_id del cookie si existe
+          tenant_id: signupCookie.user.tenant_id || '',
           role: signupCookie.user.role as any,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -208,7 +228,7 @@ export class AuthService {
       };
     }
 
-    // No hay datos de autenticación
+    // 4. No hay datos de autenticación
     return {
       token: null,
       user: null,
