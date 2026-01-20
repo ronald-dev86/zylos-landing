@@ -1,4 +1,5 @@
 import { createClient } from '@/infrastructure/supabase-client/client';
+import { clearSignupCookie } from '@/shared/utils/signupCookie';
 import type { User, AuthResponse } from '@zylos/shared-types';
 
 export class AuthService {
@@ -99,6 +100,9 @@ export class AuthService {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_data');
       localStorage.removeItem('tenant_data');
+      
+      // Clear signup cookies
+      clearSignupCookie();
 
       return {
         success: true,
